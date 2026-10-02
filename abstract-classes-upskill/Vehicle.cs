@@ -1,0 +1,89 @@
+﻿using System;
+
+namespace TollCalculator;
+
+public abstract class Vehicle
+{
+    private decimal baseToll;
+
+    protected Vehicle()
+    {
+    }
+
+    protected Vehicle(decimal baseToll)
+    {
+        if (baseToll < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(baseToll), "Base toll cannot be less than zero.");
+        }
+
+        this.baseToll = baseToll;
+    }
+
+    public decimal BaseToll
+    {
+        get => this.baseToll;
+        set
+        {
+            if (value < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(value), "Base toll cannot be less than zero.");
+            }
+
+            this.baseToll = value;
+        }
+    }
+
+    public decimal CalculateToll(DateTime timeOfToll, TrafficDirection direction)
+    {
+        return this.Calculate() * PeakTimePremium(timeOfToll, direction);
+    }
+
+    protected abstract decimal Calculate();
+
+    private static decimal PeakTimePremium(DateTime timeOfToll, TrafficDirection direction)
+    {
+        if (!IsWeekDay(timeOfToll))
+        {
+            return 1.00m;
+        }
+
+        return (GetTimeBand(timeOfToll), direction) switch
+        {
+            (TimeBand.MorningRush, TrafficDirection.Inbound) => 2.00m,
+            (TimeBand.MorningRush, TrafficDirection.Outbound) => 1.00m,
+            (TimeBand.Daytime, _) => 1.50m,
+            (TimeBand.EveningRush, TrafficDirection.Inbound) => 1.00m,
+            (TimeBand.EveningRush, TrafficDirection.Outbound) => 2.00m,
+            (TimeBand.Overnight, _) => 0.75m,
+            _ => 1.00m,
+        };
+    }
+
+    private static bool IsWeekDay(DateTime timeOfToll)
+    {
+        return timeOfToll.DayOfWeek != DayOfWeek.Saturday && timeOfToll.DayOfWeek != DayOfWeek.Sunday;
+    }
+
+    private static TimeBand GetTimeBand(DateTime timeOfToll)
+    {
+        TimeSpan time = timeOfToll.TimeOfDay;
+
+        if (time >= new TimeSpan(6, 0, 0) && time < new TimeSpan(10, 0, 0))
+        {
+            return TimeBand.MorningRush;
+        }
+        else if (time >= new TimeSpan(10, 0, 0) && time < new TimeSpan(16, 0, 0))
+        {
+            return TimeBand.Daytime;
+        }
+        else if (time >= new TimeSpan(16, 0, 0) && time <= new TimeSpan(19, 0, 0))
+        {
+            return TimeBand.EveningRush;
+        }
+        else
+        {
+            return TimeBand.Overnight;
+        }
+    }
+}
