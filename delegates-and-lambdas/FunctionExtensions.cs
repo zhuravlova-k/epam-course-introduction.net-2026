@@ -1,0 +1,152 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace Delegates;
+
+/// <summary>
+/// Demonstrates the delegate type and its capabilities.
+/// </summary>
+public static class FunctionExtensions
+{
+    public static IEnumerable<T> GenerateProgression<T>(T first, Func<T, T>? formula, int count)
+    {
+        if (count <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), "Count must be greater than zero.");
+        }
+
+        ArgumentNullException.ThrowIfNull(formula);
+
+        return GeneratorCore();
+
+        IEnumerable<T> GeneratorCore()
+        {
+            T current = first;
+            for (int i = 0; i < count; i++)
+            {
+                yield return current;
+                current = formula(current);
+            }
+        }
+    }
+
+    public static IEnumerable<T> GenerateProgression<T>(T first, Func<T, T>? formula, Predicate<T>? finished)
+    {
+        ArgumentNullException.ThrowIfNull(formula);
+        ArgumentNullException.ThrowIfNull(finished);
+
+        return GeneratorCore();
+
+        IEnumerable<T> GeneratorCore()
+        {
+            T current = first;
+            while (!finished(current))
+            {
+                yield return current;
+                current = formula(current);
+            }
+        }
+    }
+
+    public static T GetElement<T>(T first, Func<T, T>? formula, int number)
+    {
+        if (number <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(number), "Number must be greater than zero.");
+        }
+
+        ArgumentNullException.ThrowIfNull(formula);
+
+        T current = first;
+        for (int i = 1; i < number; i++)
+        {
+            current = formula(current);
+        }
+
+        return current;
+    }
+
+    public static T Calculate<T>(T first, Func<T, T>? formula, Func<T, T, T>? operation, int count)
+    {
+        if (count <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), "Count must be greater than zero.");
+        }
+
+        ArgumentNullException.ThrowIfNull(formula);
+        ArgumentNullException.ThrowIfNull(operation);
+
+        T current = first;
+        T result = first;
+
+        for (int i = 1; i < count; i++)
+        {
+            current = formula(current);
+            result = operation(result, current);
+        }
+
+        return result;
+    }
+
+    public static IEnumerable<T> GenerateSequence<T>(T first, T second, Func<T, T, T>? formula, int count)
+    {
+        if (count <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(count), "Count must be greater than zero.");
+        }
+
+        ArgumentNullException.ThrowIfNull(formula);
+
+        return GeneratorCore();
+
+        IEnumerable<T> GeneratorCore()
+        {
+            if (count >= 1)
+            {
+                yield return first;
+            }
+
+            if (count >= 2)
+            {
+                yield return second;
+            }
+
+            T prev2 = first;
+            T prev1 = second;
+
+            for (int i = 2; i < count; i++)
+            {
+                T current = formula(prev2, prev1);
+                yield return current;
+
+                prev2 = prev1;
+                prev1 = current;
+            }
+        }
+    }
+
+    public static Predicate<T> CombinePredicates<T>(params Predicate<T>[]? predicates)
+    {
+        ArgumentNullException.ThrowIfNull(predicates);
+
+        return item =>
+        {
+            foreach (var predicate in predicates)
+            {
+                if (!predicate(item))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        };
+    }
+
+    public static T FindMax<T>(T lhs, T rhs, Comparison<T>? comparer)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return comparer(lhs, rhs) >= 0 ? lhs : rhs;
+    }
+}
