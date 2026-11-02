@@ -1,0 +1,20 @@
+using System;
+
+namespace CountdownTimer.Factories;
+
+/// <summary>
+/// Implements the factory method pattern for creating an object of the <see cref="Timer"/> class.
+/// </summary>
+public class TimerFactory
+{
+    /// <summary>
+    /// Create an object of the <see cref="Timer"/> class.
+    /// </summary>
+    /// <param name="name">Name of timer.</param>
+    /// <param name="ticks">Count of ticks.</param>
+    /// <returns>A reference to an object of the <see cref="Timer"/> class.</returns>
+    public Timer CreateTimer(string name, int ticks)
+    {
+        return new Timer(name, ticks);
+    }
+}
